@@ -205,8 +205,8 @@
 
     <!-- Script จัดการระบบทั้งหมด -->
     <script>
-        // ลิงก์ API Google Sheets Real-time
-        const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbyxGrQum0uZf9vG96cAGagbqyxy_kcu4JywnCKYkBrvaHPtpDzMemRhGyNbbFjs5zVuyA/exec";
+        // ลิงก์ API Google Sheets Real-time ตัวใหม่
+        const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbyekdy4Wx9nfUYG90yUT3mnl7MYNM0eLATDs9JQJQlNSQno1lVNvl5yiMop-fm0RGqt0g/exec";
 
         const ADMIN_USERNAME = 'admin';
 
@@ -217,7 +217,6 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let authMode = 'login'; 
 
-        // Elements
         const bgMusic = document.getElementById('bgMusic');
         const bgMusicSource = document.getElementById('bgMusicSource');
 
@@ -499,7 +498,6 @@
             updateAuthUI();
         }
 
-        // โหลดข้อมูลรีวิวจาก Google Sheets แบบ Real-time
         async function fetchReviewsFromSheets() {
             try {
                 const response = await fetch(GOOGLE_SHEETS_API_URL);
@@ -516,12 +514,14 @@
                     return;
                 }
 
-                // แสดงผลจากล่าสุดไปเก่าสุด
                 reviews.reverse().forEach(review => {
                     const reviewItem = document.createElement('div');
                     reviewItem.className = 'hover-bounce p-4 bg-[#18181c] rounded-xl border border-white/10 shadow-sm flex justify-between items-center gap-2';
                     const name = review.name ? escapeHtml(review.name) : 'ไม่ระบุชื่อ';
-                    const text = review.text ? review.text : '';
+                    let text = review.text ? review.text.toString() : '';
+                    
+                    if (text.startsWith("'")) text = text.substring(1);
+
                     const time = review.time ? review.time : 'เมื่อสักครู่';
 
                     let badgeClass = text.includes('+1') ? 'bg-green-500/15 text-green-400 border-green-500/30' : 'bg-red-500/15 text-red-400 border-red-500/30';
@@ -559,7 +559,6 @@
             }
         }
 
-        // ส่งรีวิวไปยัง Google Sheets
         reviewForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentUser) {
@@ -594,7 +593,7 @@
 
                     alert('✅ ส่งรีวิวเรียบร้อยแล้ว!');
                     selectedChoice.checked = false;
-                    fetchReviewsFromSheets();
+                    setTimeout(fetchReviewsFromSheets, 1200);
                 } catch (error) {
                     alert('❌ เกิดข้อผิดพลาดในการส่งรีวิว');
                 } finally {
@@ -614,12 +613,10 @@
                        .replace(/'/g, "&#039;");
         }
 
-        // เริ่มต้นการทำงาน
         loadSiteSettings();
         updateAuthUI();
         fetchReviewsFromSheets();
 
-        // รีเฟรชดึงรีวิวใหม่ทุกๆ 5 วินาที (Real-time Sync)
         setInterval(fetchReviewsFromSheets, 5000);
     </script>
 </body>
